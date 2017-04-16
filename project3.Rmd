@@ -1,0 +1,160 @@
+---
+title: "Practical machine learning final project:Predicting the Type of Physical Exercise"
+author: "Yao Tian"
+date: "April 9, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+library(data.table)
+library(rattle)
+library(rpart)
+library(randomForest)
+library(mice)
+figure_size =10
+```
+##Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+##Synopsis
+
+There are five movements in the dataset, they are labelled as follow:
+
+exactly according to the specification (A)  
+throwing elbows to the front (B)  
+lifting the dumbbell only halfway (C)  
+lowering the dumbbell only halfway (D)  
+throwing the hips to the front (E)  
+
+The data is trained with both **rpart** and **random forest** models.  **Random forest** outperforms **rpart** in the validation dataset. However, for the test data set, the predictions are identical.
+
+##Modeling 
+###1. Initialization
+
+Download the data files if the files not exist
+```{r}
+pMiss <- function(x){sum(is.na(x))/length(x)}
+pEmpty <- function(x){sum(x=="")/length(x)}
+
+trainfile_name = "train.csv"
+testfile_name = "test.csv"
+train_url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+test_url = "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+if(!file.exists(trainfile_name))
+{
+    download.file(train_url,trainfile_name)
+}
+
+if(!file.exists(testfile_name))
+{
+    download.file(test_url,testfile_name)
+}
+
+
+```
+
+###2. Data preprocess
+
+(1) Load data and remove the irrelevent columns (column 1-7).
+(2) Calculate the number of "NA" and "Empty" rows of each column.
+(3) Remove those column with "NA"/"Empty" percentage larger than 50%
+(4) Impute the data, this step is prosecuted since after Step 3, all the rows are NA-free.
+```{r}
+train_data = fread(trainfile_name)
+test_data = fread(testfile_name)
+
+train_data = train_data[,-c(1:7)]
+test_data = test_data[,-c(1:7)]
+
+train_data = data.frame(train_data)
+test_data = data.frame(test_data)
+
+threshold = 0.5
+
+res=apply(train_data,2,pMiss)
+train_data = train_data[,res<threshold]
+res=apply(test_data,2,pMiss)
+test_data = test_data[,res<threshold]
+
+res = apply(train_data,2,pEmpty)
+train_data = train_data[,res<threshold]
+res = apply(test_data,2,pEmpty)
+test_data = test_data[,res<threshold]
+
+res = apply(train_data,2,pMiss)
+res2 = res = apply(train_data,2,pEmpty)
+
+if(sum(res)!=0||sum(res2)!=0)
+{
+    tempdata = mice(train_data,m=5,maxit=50,meth='pmm',seed=500)
+    train_data = complete(tempData,1)
+}
+
+res = apply(test_data,2,pMiss)
+res2 = apply(test_data,2,pEmpty)
+
+if(sum(res)!=0||sum(res2)!=0)
+{
+    tempdata = mice(test_data,m=5,maxit=50,meth='pmm',seed=500)
+    test_data = complete(tempData,1)
+}
+
+train_data$classe = factor(train_data$classe)
+#test_data$classe = factor(test_data$classe)
+```
+###3. Cross-Validation
+Split the train dataset into train and valid datasets. The ratio is 3:1
+```{r}
+
+train_index = createDataPartition(train_data$classe,p=0.75,list=FALSE)
+
+train_data_cross = train_data[train_index,]
+valid_data_cross = train_data[-train_index,]
+```
+###4. Using decision tree (rpart) model to train the data.
+
+4.1 Plot the decision tree
+```{r, fig.height=figure_size,fig.width=figure_size}
+rcontrol = rpart.control(minsplit = 50, minbucket = round(50/3), cp = 0.01,           maxcompete = 4, maxsurrogate = 5, usesurrogate = 2, xval = 10,surrogatestyle = 0, maxdepth = 10)
+
+modFit <- rpart(classe ~., data=train_data_cross, method="class",control =rcontrol)
+fancyRpartPlot(modFit)
+```
+4.2 Show the confusionMatrix of valid data sets
+```{r}
+predictions <- predict(modFit, newdata=valid_data_cross, type = "class")
+confusionMatrix(predictions, valid_data_cross$classe)
+```
+4.3 Show the confusionMatrix of test data sets
+```{r}
+predictions_rp <- predict(modFit, newdata=test_data, type = "class")
+```
+
+###5. Using random forest model to train the data.
+
+```{r}
+modFit2 <- randomForest(classe ~., data=train_data_cross,method="class")
+```
+5.1 Show the confusionMatrix of valid data sets
+```{r}
+predictions <- predict(modFit2, newdata=valid_data_cross, type = "class")
+confusionMatrix(predictions, valid_data_cross$classe)
+```
+
+5.2 Show the confusionMatrix of test data sets
+```{r}
+predictions_rf <- predict(modFit, newdata=test_data, type = "class")
+comparision_res = mapply(FUN = function(x,y) x==y, predictions_rp, predictions_rf)
+```
+
+###6. Prediction and results
+Prediction by rpart model is: `r predictions_rp`  
+Prediction by random forest model is: `r predictions_rf`  
+They matching ratio is `r sum(comparision_res)/length(predictions_rp)*100`%
+
+##Refence
+Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. 
