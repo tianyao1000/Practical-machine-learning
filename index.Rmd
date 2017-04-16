@@ -104,6 +104,7 @@ if(sum(res)!=0||sum(res2)!=0)
 }
 
 train_data$classe = factor(train_data$classe)
+test_data$problem_id = NULL
 #test_data$classe = factor(test_data$classe)
 ```
 ###3. Cross-Validation
