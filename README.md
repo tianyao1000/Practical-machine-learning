@@ -1,37 +1,20 @@
-## Welcome to GitHub Pages
+---
+##"Practical machine learning final project:Predicting the Type of Physical Exercise"
 
-You can use the [editor on GitHub](https://github.com/tianyao1000/Practical-machine-learning/edit/gh-pages/README.md) to maintain and preview the content for your website in Markdown files.
+##Background
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
 
-### Markdown
+##Synopsis
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+There are five movements in the dataset, they are labelled as follow:
 
-```markdown
-Syntax highlighted code block
+exactly according to the specification (A)  
+throwing elbows to the front (B)  
+lifting the dumbbell only halfway (C)  
+lowering the dumbbell only halfway (D)  
+throwing the hips to the front (E)  
 
-# Header 1
-## Header 2
-### Header 3
+The data is trained with both **rpart** and **random forest** models.  **Random forest** outperforms **rpart** in the validation dataset. However, for the test data set, the predictions are identical.
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tianyao1000/Practical-machine-learning/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+For the rest, please refer to **index.Rmd**
