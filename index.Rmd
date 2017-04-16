@@ -29,7 +29,7 @@ lifting the dumbbell only halfway (C)
 lowering the dumbbell only halfway (D)  
 throwing the hips to the front (E)  
 
-The data is trained with both **rpart** and **random forest** models.  **Random forest** outperforms **rpart** in the validation dataset. However, for the test data set, the predictions are identical.
+Since it is a classification problem, the data sets are trained with both **rpart** and **random forest** models.  **Random forest** outperforms **rpart** in the validation dataset. However, for the test data set, the predictions are identical.
 
 ##Modeling 
 ###1. Initialization
@@ -127,11 +127,12 @@ fancyRpartPlot(modFit)
 4.2 Show the confusionMatrix of valid data sets
 ```{r}
 predictions <- predict(modFit, newdata=valid_data_cross, type = "class")
-confusionMatrix(predictions, valid_data_cross$classe)
+con_m_rp=confusionMatrix(predictions, valid_data_cross$classe)
 ```
 4.3 Show the confusionMatrix of test data sets
 ```{r}
 predictions_rp <- predict(modFit, newdata=test_data, type = "class")
+con_m_rp
 ```
 
 ###5. Using random forest model to train the data.
@@ -142,17 +143,21 @@ modFit2 <- randomForest(classe ~., data=train_data_cross,method="class")
 5.1 Show the confusionMatrix of valid data sets
 ```{r}
 predictions <- predict(modFit2, newdata=valid_data_cross, type = "class")
-confusionMatrix(predictions, valid_data_cross$classe)
+con_m_rf=confusionMatrix(predictions, valid_data_cross$classe)
+con_m_rf
 ```
 
 5.2 Show the confusionMatrix of test data sets
 ```{r}
 predictions_rf <- predict(modFit, newdata=test_data, type = "class")
 comparision_res = mapply(FUN = function(x,y) x==y, predictions_rp, predictions_rf)
+
 ```
 
 ###6. Prediction and results
-Prediction by rpart model is: `r predictions_rp`  
+The accurary obtained from the validation dataset is `r con_m_rp$overall[1]`
+ for **rpart** model and  `r con_m_rf$overall[1]` for **random forest** model.  
+Prediction by rpart model is: `r predictions_rp`    
 Prediction by random forest model is: `r predictions_rf`  
 They matching ratio is `r sum(comparision_res)/length(predictions_rp)*100`%
 
