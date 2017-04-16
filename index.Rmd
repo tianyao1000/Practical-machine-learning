@@ -29,7 +29,7 @@ lifting the dumbbell only halfway (C)
 lowering the dumbbell only halfway (D)  
 throwing the hips to the front (E)  
 
-Since it is a classification problem, the data sets are trained with both **rpart** and **random forest** models.  **Random forest** outperforms **rpart** in the validation dataset. However, for the test data set, the predictions are identical.
+Since it is a classification problem, the data sets are trained with both **rpart** and **random forest** models.  **Random forest** outperforms **rpart** in the validation dataset. 
 
 ##Modeling 
 ###1. Initialization
@@ -110,7 +110,7 @@ test_data$problem_id = NULL
 ###3. Cross-Validation
 Split the train dataset into train and valid datasets. The ratio is 3:1
 ```{r}
-
+set.seed(12345)
 train_index = createDataPartition(train_data$classe,p=0.75,list=FALSE)
 
 train_data_cross = train_data[train_index,]
@@ -129,11 +129,12 @@ fancyRpartPlot(modFit)
 ```{r}
 predictions <- predict(modFit, newdata=valid_data_cross, type = "class")
 con_m_rp=confusionMatrix(predictions, valid_data_cross$classe)
+con_m_rp
 ```
-4.3 Show the confusionMatrix of test data sets
+4.3 Show the prediction of test data sets
 ```{r}
 predictions_rp <- predict(modFit, newdata=test_data, type = "class")
-con_m_rp
+
 ```
 
 ###5. Using random forest model to train the data.
@@ -148,9 +149,9 @@ con_m_rf=confusionMatrix(predictions, valid_data_cross$classe)
 con_m_rf
 ```
 
-5.2 Show the confusionMatrix of test data sets
+5.2 Show the predictions of test data sets
 ```{r}
-predictions_rf <- predict(modFit, newdata=test_data, type = "class")
+predictions_rf <- predict(modFit2, newdata=test_data, type = "class")
 comparision_res = mapply(FUN = function(x,y) x==y, predictions_rp, predictions_rf)
 
 ```
